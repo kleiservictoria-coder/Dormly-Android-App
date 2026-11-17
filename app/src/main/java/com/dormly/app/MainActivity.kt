@@ -10,6 +10,17 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
+data class DormlyTicket(
+    val id: Int,
+    val title: String,
+    val category: String,
+    val detail: String,
+    val resident: String,
+    var status: String,
+    var assignedTo: String = "Unassigned",
+    var note: String = ""
+)
+
 class MainActivity : AppCompatActivity() {
     private val navy = Color.rgb(20, 43, 74)
     private val blue = Color.rgb(40, 100, 165)
@@ -24,17 +35,7 @@ class MainActivity : AppCompatActivity() {
     private var currentTab = "Home"
     private var nextId = 104
     private lateinit var database: DormlyDatabase
-    private data class Ticket(
-        val id: Int,
-        val title: String,
-        val category: String,
-        val detail: String,
-        val resident: String,
-        var status: String,
-        var assignedTo: String = "Unassigned",
-        var note: String = ""
-    )
-    private val tickets = mutableListOf<Ticket>()
+    private val tickets = mutableListOf<DormlyTicket>()
 
     private val residents = listOf("Alex Rivera · Room 204", "Jamie Cruz · Room 108", "Taylor Reyes · Room 305", "Morgan Lee · Room 210")
     private val units = listOf("Room 108 · Occupied", "Room 204 · Occupied", "Room 210 · Occupied", "Room 305 · Occupied", "Room 401 · Available")
@@ -266,7 +267,7 @@ class MainActivity : AppCompatActivity() {
         addGap(content, 14)
     }
 
-    private fun ticketCard(t: Ticket, adminActions: Boolean) {
+    private fun ticketCard(t: DormlyTicket, adminActions: Boolean) {
         val box = card()
         val top = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
         top.addView(text("#" + t.id + "  " + t.title, 15f, navy, true), LinearLayout.LayoutParams(0, -2, 1f))
@@ -368,7 +369,7 @@ class MainActivity : AppCompatActivity() {
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Submit") { _, _ ->
                 if (title.text.isNotBlank() && detail.text.isNotBlank()) {
-                    tickets.add(0, Ticket(nextId++, title.text.toString(), categories.selectedItem.toString(),
+                    tickets.add(0, DormlyTicket(nextId++, title.text.toString(), categories.selectedItem.toString(),
                         detail.text.toString(), "Alex Rivera · Room 204", "Pending"))
                     database.saveTickets(tickets)
                     Toast.makeText(this, "Request submitted successfully.", Toast.LENGTH_SHORT).show()
@@ -377,7 +378,7 @@ class MainActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun adminTicketDialog(t: Ticket) {
+    private fun adminTicketDialog(t: DormlyTicket) {
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0) }
         val staffSpinner = Spinner(this)
         staffSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, staff)
@@ -399,7 +400,7 @@ class MainActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun maintenanceDialog(t: Ticket) {
+    private fun maintenanceDialog(t: DormlyTicket) {
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(20), dp(8), dp(20), 0) }
         val statusSpinner = Spinner(this)
         statusSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, listOf("In Progress", "Completed"))
