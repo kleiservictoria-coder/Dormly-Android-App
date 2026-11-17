@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private var email = ""
     private var currentTab = "Home"
     private var nextId = 104
+    private lateinit var database: DormlyDatabase
     private data class Ticket(
         val id: Int,
         val title: String,
@@ -33,11 +34,8 @@ class MainActivity : AppCompatActivity() {
         var assignedTo: String = "Unassigned",
         var note: String = ""
     )
-    private val tickets = mutableListOf(
-        Ticket(101, "Leaking bathroom faucet", "Plumbing", "Water continues to drip from the bathroom faucet.", "Alex Rivera · Room 204", "In Progress", "Marco Santos"),
-        Ticket(102, "Hallway light not working", "Electrical", "The light outside the room is not turning on.", "Jamie Cruz · Room 108", "Pending"),
-        Ticket(103, "Wi-Fi connection issue", "Internet", "The room connection keeps disconnecting.", "Taylor Reyes · Room 305", "Completed", "Marco Santos", "Router reset and connection tested.")
-    )
+    private val tickets = mutableListOf<Ticket>()
+
     private val residents = listOf("Alex Rivera · Room 204", "Jamie Cruz · Room 108", "Taylor Reyes · Room 305", "Morgan Lee · Room 210")
     private val units = listOf("Room 108 · Occupied", "Room 204 · Occupied", "Room 210 · Occupied", "Room 305 · Occupied", "Room 401 · Available")
     private val staff = listOf("Marco Santos", "Jordan Flores", "Casey Mendoza")
@@ -47,6 +45,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         content = findViewById(R.id.content)
         bottom = findViewById(R.id.bottomNav)
+        database = DormlyDatabase(this)
+        tickets.addAll(database.getTickets())
+        nextId = (tickets.maxOfOrNull { it.id } ?: 100) + 1
         showLogin()
     }
 
@@ -339,18 +340,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun showUpdates() {
         heading("Community updates", "Announcements from your property team.")
-        addCard(content, card().apply {
-            addView(text("Welcome to Dormly", 17f, navy, true))
-            addView(text("Use Dormly to report maintenance concerns and keep track of updates for your home.", 13f, ink))
-            addGap(this, 6)
-            addView(text("Property Administration  ·  Today", 11f, muted))
-        })
-        addCard(content, card().apply {
-            addView(text("Maintenance reminder", 17f, navy, true))
-            addView(text("Please keep shared hallways clear and report facility concerns through a maintenance request.", 13f, ink))
-            addGap(this, 6)
-            addView(text("Property Administration  ·  This week", 11f, muted))
-        })
+        database.getAnnouncements().forEach { announcement ->
+            addCard(content, card().apply {
+                addView(text(announcement.first, 17f, navy, true))
+                addView(text(announcement.second, 13f, ink))
+                addGap(this, 6)
+                addView(text("Property Administration  ·  Posted announcement", 11f, muted))
+            })
+        }
+        if (database.getAnnouncements().isEmpty()) {
+            content.addView(text("No announcements have been posted yet.", 13f, muted))
+        }
         if (role == "Admin") addCard(content, button("＋  New announcement", { announcementDialog() }))
     }
 
@@ -370,6 +370,7 @@ class MainActivity : AppCompatActivity() {
                 if (title.text.isNotBlank() && detail.text.isNotBlank()) {
                     tickets.add(0, Ticket(nextId++, title.text.toString(), categories.selectedItem.toString(),
                         detail.text.toString(), "Alex Rivera · Room 204", "Pending"))
+                    database.saveTickets(tickets)
                     Toast.makeText(this, "Request submitted successfully.", Toast.LENGTH_SHORT).show()
                     currentTab = "Requests"; render()
                 } else Toast.makeText(this, "Please complete the title and description.", Toast.LENGTH_SHORT).show()
@@ -392,6 +393,7 @@ class MainActivity : AppCompatActivity() {
                 t.assignedTo = staffSpinner.selectedItem.toString()
                 t.status = statusSpinner.selectedItem.toString()
                 t.note = note.text.toString()
+                database.saveTickets(tickets)
                 Toast.makeText(this, "Request updated.", Toast.LENGTH_SHORT).show()
                 render()
             }.show()
@@ -409,6 +411,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Save update") { _, _ ->
                 t.status = statusSpinner.selectedItem.toString()
                 t.note = note.text.toString()
+                database.saveTickets(tickets)
                 Toast.makeText(this, "Task progress saved.", Toast.LENGTH_SHORT).show()
                 render()
             }.show()
@@ -419,7 +422,15 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this).setTitle("New announcement").setView(box)
             .setNegativeButton("Cancel", null)
             .setPositiveButton("Post") { _, _ ->
-                if (box.text.isNotBlank()) Toast.makeText(this, "Announcement posted for this demo session.", Toast.LENGTH_LONG).show()
+                val message = box.text.toString().trim()
+                if (message.isNotBlank()) {
+                    database.addAnnouncement("Property announcement", message)
+                    Toast.makeText(this, "Announcement posted.", Toast.LENGTH_LONG).show()
+                    currentTab = "Updates"
+                    render()
+                } else {
+                    Toast.makeText(this, "Please enter an announcement.", Toast.LENGTH_SHORT).show()
+                }
             }.show()
     }
 }
