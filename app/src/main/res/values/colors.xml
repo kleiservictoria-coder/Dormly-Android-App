@@ -1,0 +1,12 @@
+<resources>
+    <color name="navy">#142B4A</color>
+    <color name="blue">#2864A5</color>
+    <color name="sky">#EAF2FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="ink">#1C2938</color>
+    <color name="muted">#718096</color>
+    <color name="line">#E5EAF0</color>
+    <color name="green">#23845B</color>
+    <color name="amber">#A96B13</color>
+    <color name="red">#B64242</color>
+</resources>
