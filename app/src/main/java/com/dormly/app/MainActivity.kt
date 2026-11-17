@@ -246,9 +246,9 @@ class MainActivity : AppCompatActivity() {
                 })
             }
             else -> {
-                statsRow("Assigned to me", tickets.count { it.assignedTo == "Marco Santos" }.toString(), "In progress", tickets.count { it.assignedTo == "Marco Santos" && it.status == "In Progress" }.toString())
-                heading("My assigned work", "Tasks assigned to Marco Santos")
-                tickets.filter { it.assignedTo == "Marco Santos" }.forEach { ticketCard(it, true) }
+                statsRow("Assigned to me", tickets.count { it.assignedTo != "Unassigned" }.toString(), "In progress", tickets.count { it.assignedTo != "Unassigned" && it.status == "In Progress" }.toString())
+                heading("My assigned work", "Maintenance team work queue")
+                tickets.filter { it.assignedTo != "Unassigned" }.forEach { ticketCard(it, true) }
             }
         }
     }
@@ -281,7 +281,7 @@ class MainActivity : AppCompatActivity() {
         if (adminActions && role == "Admin" && t.status != "Completed") {
             addGap(box, 8)
             box.addView(button("Assign / update", { adminTicketDialog(t) }))
-        } else if (role == "Maintenance" && t.assignedTo == "Marco Santos" && t.status != "Completed") {
+        } else if (role == "Maintenance" && t.assignedTo != "Unassigned" && t.status != "Completed") {
             addGap(box, 8)
             box.addView(button("Update task", { maintenanceDialog(t) }))
         }
