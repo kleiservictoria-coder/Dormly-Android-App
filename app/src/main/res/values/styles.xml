@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Dormly" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#142B4A</item>
+        <item name="colorPrimaryDark">#10233D</item>
+        <item name="colorAccent">#2864A5</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">#10233D</item>
+        <item name="android:navigationBarColor">#10233D</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
